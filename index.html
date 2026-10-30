@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Poltergeist: a ghost that haunts your VS Code status bar</title>
+<meta name="description" content="Poltergeist is a free VS Code extension. A ghost in your status bar reacts to errors and idle time with one short line, using open weight models locally or through an API.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Poltergeist: a ghost that haunts your VS Code status bar">
+<meta property="og:description" content="A free VS Code extension that roasts your errors in one line, powered by open weight models.">
+<meta property="og:image" content="https://YOUR-DOMAIN.tech/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="color-scheme" content="dark">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%91%BB%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css">
+<style>
+:root{--bg:#000000;--s1:#181818;--s2:#1F1F1F;--s3:#272727;--s4:#313131;--tx:#F2F2F2;--mu:#A3A3A3;--ac:#F5A524;--gh:#A9E3EF;--er:#FF6B81;
+--ease:cubic-bezier(.22,1,.36,1);
+--a:2px;--b:4px;--c:8px;--d:12px;--e:16px;--f:24px;--g:32px;--h:40px;--i:48px;--j:64px;--k:80px;--l:96px;color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--tx);font:400 16px/24px Geist,system-ui,sans-serif;text-wrap:pretty}
+a{color:inherit}
+i.ph{font-size:20px;line-height:1;flex:none}
+:focus-visible{outline:2px solid var(--gh);outline-offset:2px;border-radius:4px}
+.wrap{max-width:1040px;margin:0 auto;padding:0 var(--e)}
+.skip{position:absolute;left:var(--c);top:-96px;background:var(--ac);color:#1a1000;padding:var(--c) var(--d);border-radius:8px;z-index:50}
+.skip:focus{top:var(--c)}
+h1,h2,h3,p{margin:0}
+h1,h2,h3{text-wrap:balance;font-weight:600}
+.xs{font-size:12px;line-height:16px}.sm{font-size:14px;line-height:20px}.lg{font-size:18px;line-height:28px}
+.x3{font-size:30px;line-height:36px}.x4{font-size:36px;line-height:40px}.x5{font-size:48px;line-height:1}
+.mu{color:var(--mu)}
+.mono{font-family:"Geist Mono",ui-monospace,Menlo,monospace}
+
+.btn{display:inline-flex;align-items:center;gap:var(--c);padding:var(--c) var(--d);border-radius:8px;background:var(--ac);color:#1a1000;font:600 16px/24px Geist,system-ui,sans-serif;text-decoration:none;border:0;cursor:pointer;transition:opacity 300ms var(--ease),transform 300ms var(--ease)}
+.btn.s{font-size:14px;line-height:20px}
+.btn:hover{opacity:.88}
+.btn:active{transform:scale(.98)}
+
+.nav{position:fixed;top:var(--e);left:50%;transform:translateX(-50%);z-index:30;display:flex;align-items:center;gap:var(--f);padding:var(--c);border-radius:16px;background:rgba(24,24,24,.72);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid var(--s4)}
+.nav a{text-decoration:none}
+.brand{display:flex;align-items:center;gap:var(--c);font-weight:600;padding:0 var(--c)}
+.nl{display:flex;align-items:center;gap:var(--f)}
+.nl a:not(.btn){color:var(--mu);transition:color 300ms var(--ease)}
+.nl a:not(.btn):hover{color:var(--tx)}
+.tog{display:none;width:40px;height:40px;border:0;background:transparent;cursor:pointer;position:relative;color:var(--tx)}
+.tog span{position:absolute;left:12px;right:12px;height:2px;background:currentColor;border-radius:2px;transition:transform 500ms var(--ease)}
+.tog span:nth-child(1){top:16px}.tog span:nth-child(2){top:22px}
+.tog[aria-expanded="true"] span:nth-child(1){transform:translateY(3px) rotate(45deg)}
+.tog[aria-expanded="true"] span:nth-child(2){transform:translateY(-3px) rotate(-45deg)}
+.panel{display:none}
+
+.hero{padding:calc(var(--l) + var(--k)) var(--e) var(--g)}
+.hero h1,.hero .sub{max-width:680px}
+.gt{background:linear-gradient(to right,#FFFFFF,#9B9B9B);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
+.hero .sub{margin-top:var(--e)}
+.cta{display:flex;flex-wrap:wrap;align-items:center;gap:var(--e);margin-top:var(--f)}
+
+.win{margin-top:var(--i);border-radius:16px;background:var(--s2);overflow:hidden;border:1px solid var(--s4)}
+.tb{display:flex;gap:var(--c);padding:var(--d) var(--e);background:var(--s3)}
+.tb i{width:12px;height:12px;border-radius:50%;background:var(--s4);display:block}
+.code{margin:0;padding:var(--e) var(--f);font:400 14px/20px "Geist Mono",ui-monospace,monospace;color:#D6D6D6;overflow-x:auto;white-space:pre}
+.k{color:#C792EA}.f{color:#82AAFF}.n{color:#F8C97A}
+.sq{text-decoration:none}
+.bad .sq{text-decoration:underline wavy var(--er);text-underline-offset:4px}
+.status{display:flex;justify-content:space-between;align-items:center;gap:var(--e);padding:var(--c) var(--d);background:var(--s3);min-height:40px;color:var(--mu)}
+.pill{position:relative;display:inline-flex;align-items:center;gap:var(--c);height:24px;padding:0 var(--c);color:#fff;isolation:isolate;--pb:#000000}
+.pill::before{content:"";position:absolute;inset:0;z-index:-1;border-radius:9999px;background:var(--pb);box-shadow:0 0 0 1px var(--s4);transform-origin:left center;transform:scaleX(var(--sx,1));transition:transform 500ms var(--ease),background-color 300ms var(--ease)}
+.pill.snap::before{transition:none}
+.pill.al{--pb:#4A1020}.pill.cr{--pb:#0E2A30}
+.pill .ic{flex:none;width:16px;text-align:center}
+.pill .tx{display:none;max-width:min(440px,56vw);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:0;transition:opacity 300ms var(--ease)}
+.ctl{display:flex;flex-wrap:wrap;gap:var(--c);align-items:center;margin-top:var(--e)}
+.ctl .sp{flex:1}
+.chip{font:500 14px/20px Geist,system-ui,sans-serif;color:var(--tx);background:transparent;border:1px solid var(--s4);border-radius:9999px;padding:var(--b) var(--d);cursor:pointer;transition:background-color 300ms var(--ease),transform 300ms var(--ease)}
+.chip:hover{background:var(--s1)}
+.chip:active{transform:scale(.98)}
+.chip[aria-pressed="true"]{background:var(--tx);color:#000;border-color:var(--tx)}
+.note{margin-top:var(--c)}
+
+section{padding:var(--l) var(--e) 0}
+.sh{max-width:680px;margin-bottom:var(--g)}
+.sh p{margin-top:var(--c)}
+.tg{max-width:680px;margin:0;font-weight:600}
+.w{opacity:.3;transition:opacity 500ms var(--ease)}
+.w.on{opacity:1}
+.grid,.pf{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:var(--e)}
+.card{background:var(--s1);border:1px solid var(--s4);border-radius:16px;padding:var(--f)}
+.card i.ph{font-size:24px;color:var(--ac);display:block;margin-bottom:var(--e)}
+.card h3{margin-bottom:var(--c)}
+ol.st{list-style:none;margin:0;padding:0;display:grid;gap:var(--e);counter-reset:s}
+ol.st li{counter-increment:s;background:var(--s1);border:1px solid var(--s4);border-radius:16px;padding:var(--f);display:grid;grid-template-columns:var(--i) 1fr;gap:var(--e)}
+ol.st li::before{content:counter(s);font-weight:600;color:var(--ac);font-size:30px;line-height:36px}
+ol.st pre{margin:var(--c) 0 0;padding:var(--d);background:var(--bg);border:1px solid var(--s4);border-radius:8px;overflow-x:auto;font:400 14px/20px "Geist Mono",ui-monospace,monospace;color:#D6D6D6}
+details{background:var(--s1);border:1px solid var(--s4);border-radius:12px}
+details+details{margin-top:var(--c)}
+summary{display:flex;justify-content:space-between;align-items:center;gap:var(--e);padding:var(--e);cursor:pointer;font-weight:500;list-style:none;border-radius:12px;transition:background-color 300ms var(--ease)}
+summary::-webkit-details-marker{display:none}
+summary:hover{background:var(--s2)}
+summary i.ph{transition:transform 500ms var(--ease)}
+details[open] summary i.ph{transform:rotate(180deg)}
+details p{padding:0 var(--e) var(--e);color:var(--mu)}
+footer{margin-top:var(--l);padding:var(--j) 0 var(--i);background:#131209}
+footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:var(--f)}
+footer nav{display:flex;flex-wrap:wrap;gap:var(--f)}
+footer a{color:var(--mu);text-decoration:none;transition:color 300ms var(--ease)}
+footer a:hover{color:var(--tx)}
+#privacy{max-width:680px}
+
+.rv{opacity:0;transform:translateY(32px);transition:opacity 700ms var(--ease),transform 700ms var(--ease)}
+.rv.in{opacity:1;transform:none}
+
+@media (max-width:639px){
+  .x5{font-size:36px;line-height:40px}
+  .x4{font-size:30px;line-height:36px}
+  section{padding-top:var(--j)}
+  .hero{padding-top:calc(var(--j) + var(--k))}
+  .nl{display:none}.tog{display:block}
+  .nav{gap:var(--e)}
+  .stat-r{display:none}
+  .panel{display:flex;position:fixed;inset:0;z-index:20;flex-direction:column;justify-content:center;align-items:flex-start;gap:var(--f);padding:var(--j) var(--f);background:rgba(0,0,0,.94);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);opacity:0;pointer-events:none;transition:opacity 500ms var(--ease)}
+  .panel.open{opacity:1;pointer-events:auto}
+  .panel a{font-size:30px;line-height:36px;font-weight:600;text-decoration:none;opacity:0;transform:translateY(24px);transition:opacity 500ms var(--ease),transform 500ms var(--ease)}
+  .panel.open a{opacity:1;transform:none;transition-delay:min(calc(var(--i) * 60ms),400ms)}
+  .panel a.btn{font-size:16px;line-height:24px}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .rv,.panel a{transform:none}
+  .pill::before,.tog span,summary i.ph{transition:none}
+}
+</style>
+<noscript><style>.rv{opacity:1;transform:none}</style></noscript>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<nav class="nav" aria-label="Main">
+  <a class="brand" href="#top"><i class="ph ph-ghost" aria-hidden="true"></i>Poltergeist</a>
+  <div class="nl sm">
+    <a href="#how">How it works</a>
+    <a href="#faq">FAQ</a>
+    <a class="btn s" href="https://github.com/YOUR-USERNAME/poltergeist/releases/latest">Download</a>
+  </div>
+  <button class="tog" id="tog" aria-label="Open menu" aria-expanded="false" aria-controls="panel"><span></span><span></span></button>
+</nav>
+<div class="panel" id="panel">
+  <a href="#how" style="--i:0">How it works</a>
+  <a href="#faq" style="--i:1">FAQ</a>
+  <a class="btn" href="https://github.com/YOUR-USERNAME/poltergeist/releases/latest" style="--i:2">Download the extension</a>
+</div>
+
+<main id="main">
+  <header class="hero wrap" id="top">
+    <h1 class="x5 gt">A dead language haunts<br>your VS Code status bar.</h1>
+    <p class="sub lg mu">Poltergeist is a free VS Code extension. When your code throws an error,<br>or you go quiet for too long, a ghost in the status bar says one line about it.</p>
+    <div class="cta">
+      <a class="btn" href="https://github.com/YOUR-USERNAME/poltergeist/releases/latest"><i class="ph ph-download-simple" aria-hidden="true"></i>Download the extension</a>
+      <span class="sm mu">Runs on open weight models, local with Ollama or hosted with DeepSeek or Xiaomi MiMo.</span>
+    </div>
+
+    <div class="win" id="win" aria-hidden="true">
+      <div class="tb"><i></i><i></i><i></i></div>
+<pre class="code"><span class="k">const</span> price = <span class="n">12</span>
+<span class="k">const</span> qty = <span class="n">3</span>
+<span class="k">const</span> total = <span class="sq">prce</span> * qty
+<span class="f">console</span>.log(total)</pre>
+      <div class="status xs mono">
+        <span class="pill xs" id="pill"><span class="ic">👻</span><span class="tx"></span></span>
+        <span class="stat-r">Ln 3, Col 15 &nbsp; TypeScript</span>
+      </div>
+    </div>
+    <div class="ctl" role="group" aria-label="Demo controls">
+      <button class="chip" data-g="cobol" aria-pressed="true">COBOL</button>
+      <button class="chip" data-g="perl" aria-pressed="false">Perl</button>
+      <button class="chip" data-g="actionscript" aria-pressed="false">ActionScript</button>
+      <span class="sp"></span>
+      <button class="chip" id="bE">Make an error</button>
+      <button class="chip" id="bI">Go quiet</button>
+    </div>
+    <p class="note xs mu">This is a demo. The lines are written by hand to show the tone. The real ghost writes a new line from your actual error.</p>
+  </header>
+
+  <section class="wrap" aria-label="Tagline">
+    <p class="tg x4" id="tg">Error messages are easy to ignore. A ghost with an opinion about your code is not.</p>
+  </section>
+
+  <section class="wrap rv" id="benefits">
+    <div class="sh"><h2 class="x3">Errors you stop scrolling past</h2></div>
+    <div class="grid">
+      <div class="card"><i class="ph ph-warning-circle" aria-hidden="true"></i><h3 class="lg">Reads your errors for you</h3><p class="sm mu">The ghost reacts to the real warning or error in the file you are editing, so every line is about your actual code.</p></div>
+      <div class="card"><i class="ph ph-clock" aria-hidden="true"></i><h3 class="lg">Notices when you stop</h3><p class="sm mu">Go idle and the ghost creeps in to ask if you are still there. You set how long it waits.</p></div>
+      <div class="card"><i class="ph ph-cpu" aria-hidden="true"></i><h3 class="lg">Works with your model</h3><p class="sm mu">Use Ollama on your own machine, or any OpenAI compatible API. Switching is one setting.</p></div>
+      <div class="card"><i class="ph ph-lock-simple" aria-hidden="true"></i><h3 class="lg">Keeps your code home</h3><p class="sm mu">In local mode nothing leaves your computer. In hosted mode only the error message is sent by default.</p></div>
+    </div>
+  </section>
+
+  <section class="wrap rv" id="how">
+    <div class="sh"><h2 class="x3">Three steps to a haunted editor</h2></div>
+    <ol class="st">
+      <li><div><h3 class="lg">Install the extension</h3><p class="sm mu">Download <span class="mono">poltergeist.vsix</span> from GitHub releases, then run this command in VS Code.</p><pre>Extensions: Install from VSIX...</pre></div></li>
+      <li><div><h3 class="lg">Choose where the ghost thinks</h3><p class="sm mu">For local mode, start Ollama and pull a model. For hosted mode, run this command and paste your key.</p><pre>Poltergeist: Set API Key</pre></div></li>
+      <li><div><h3 class="lg">Pick a ghost and keep coding</h3><p class="sm mu">Choose COBOL, Perl, or ActionScript. The ghost speaks up when something breaks or you go quiet.</p><pre>Poltergeist: Pick Ghost</pre></div></li>
+    </ol>
+  </section>
+
+  <section class="wrap rv" id="proof">
+    <div class="sh"><h2 class="x3">What you can check yourself</h2><p class="mu">There are no testimonials yet, because this launched during a hackathon week. Here is what you can verify instead.</p></div>
+    <div class="pf">
+      <div class="card"><h3 class="lg">Open source</h3><p class="sm mu">The full source is on GitHub under the MIT license. Read what it sends before you install it.</p></div>
+      <div class="card"><h3 class="lg">Works offline</h3><p class="sm mu">With Ollama running, turn off your internet and the ghost still talks.</p></div>
+      <div class="card"><h3 class="lg">Swappable models</h3><p class="sm mu">Change the provider or model in settings. No lock in to one vendor.</p></div>
+    </div>
+  </section>
+
+  <section class="wrap rv" id="faq">
+    <div class="sh"><h2 class="x3">Questions people ask first</h2></div>
+    <details><summary>Does my code leave my computer?<i class="ph ph-caret-down" aria-hidden="true"></i></summary><p>Not in local mode. In hosted mode, code context is off by default, so only the error message is sent to your provider. You can turn code context on in settings.</p></details>
+    <details><summary>Which models does it work with?<i class="ph ph-caret-down" aria-hidden="true"></i></summary><p>Any OpenAI compatible endpoint. That includes Ollama on your machine and hosted open weight models such as DeepSeek and Xiaomi MiMo.</p></details>
+    <details><summary>Does it work offline?<i class="ph ph-caret-down" aria-hidden="true"></i></summary><p>Yes, with a local model through Ollama. Hosted mode needs an internet connection.</p></details>
+    <details><summary>Will the ghost interrupt my work?<i class="ph ph-caret-down" aria-hidden="true"></i></summary><p>No popups and no panels. The status bar pill expands for a few seconds, then shrinks back. A cooldown stops it from speaking too often.</p></details>
+    <details><summary>Which ghosts are included?<i class="ph ph-caret-down" aria-hidden="true"></i></summary><p>COBOL, Perl, and ActionScript. Switch between them with the Pick Ghost command.</p></details>
+    <details><summary>What does it cost?<i class="ph ph-caret-down" aria-hidden="true"></i></summary><p>The extension is free. Local mode costs nothing per line. In hosted mode your provider bills you, and one short line uses very few tokens.</p></details>
+  </section>
+
+  <section class="wrap rv" aria-label="Get Poltergeist">
+    <h2 class="x4" style="max-width:680px">Install Poltergeist, then break something on purpose.</h2>
+    <div class="cta"><a class="btn" href="https://github.com/YOUR-USERNAME/poltergeist/releases/latest"><i class="ph ph-download-simple" aria-hidden="true"></i>Download the extension</a><span class="sm mu">Free, MIT licensed, no account needed.</span></div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div id="privacy"><p class="sm">Poltergeist</p><p class="xs mu">Built for the DEV Hacktoberfest Open Source AI Challenge, Week 4. This site sets no cookies and has no analytics. The extension collects no telemetry.</p></div>
+    <nav class="sm" aria-label="Footer">
+      <a href="#privacy">Privacy</a>
+      <a href="https://github.com/YOUR-USERNAME/poltergeist/blob/main/LICENSE">Terms (MIT license)</a>
+      <a href="https://github.com/YOUR-USERNAME/poltergeist">GitHub</a>
+      <a href="https://dev.to/YOUR-USERNAME/YOUR-POST">Write up</a>
+    </nav>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var d=document;
+  function once(sel,opts,fn){
+    var o=new IntersectionObserver(function(es){var k=0;es.forEach(function(e){if(e.isIntersecting){fn(e.target,k++);o.unobserve(e.target)}})},opts);
+    d.querySelectorAll(sel).forEach(function(n){o.observe(n)});
+  }
+  once(".rv",{threshold:.12},function(n){n.classList.add("in")});
+
+  var tg=d.getElementById("tg");
+  tg.innerHTML=tg.textContent.trim().split(/\s+/).map(function(w){return '<span class="w">'+w+'</span>'}).join(" ");
+  once("#tg .w",{rootMargin:"0px 0px -40% 0px"},function(n,k){n.style.transitionDelay=Math.min(k*40,400)+"ms";n.classList.add("on")});
+
+  var tog=d.getElementById("tog"),panel=d.getElementById("panel");
+  function menu(open){panel.classList.toggle("open",open);tog.setAttribute("aria-expanded",open);tog.setAttribute("aria-label",open?"Close menu":"Open menu");d.body.style.overflow=open?"hidden":""}
+  tog.onclick=function(){menu(!panel.classList.contains("open"))};
+  panel.querySelectorAll("a").forEach(function(a){a.onclick=function(){menu(false)}});
+  d.addEventListener("keydown",function(e){if(e.key==="Escape")menu(false)});
+
+  var L={
+    cobol:{e:"Undefined variable? In my day, we declared EVERYTHING.",i:"Still there? The mainframe never sleeps. Neither do I."},
+    perl:{e:"That bug is not a bug. It is a feature you have not regex’d yet.",i:"Quiet. Too quiet. Even the line noise has stopped."},
+    actionscript:{e:"I was alive when you needed me. Then came the great unplugging.",i:"Nobody remembers Flash. Are you still typing?"}
+  };
+  var g="cobol",busy=false,pill=d.getElementById("pill"),win=d.getElementById("win");
+  var ic=pill.querySelector(".ic"),tx=pill.querySelector(".tx");
+  var sleep=function(ms){return new Promise(function(r){setTimeout(r,ms)})};
+  function snap(sx){pill.classList.add("snap");pill.style.setProperty("--sx",sx);void pill.offsetWidth;pill.classList.remove("snap")}
+  function open(text){
+    tx.textContent=text;tx.style.display="block";tx.style.opacity=0;
+    var w=pill.offsetWidth;snap(Math.min(1,28/w));
+    pill.style.setProperty("--sx",1);tx.style.opacity=1;
+  }
+  async function close(){
+    var w=pill.offsetWidth;pill.style.setProperty("--sx",Math.min(1,28/w));tx.style.opacity=0;
+    await sleep(520);tx.style.display="none";snap(1);
+  }
+  async function speak(kind){
+    if(busy)return;busy=true;
+    if(kind==="e"){win.classList.add("bad");ic.textContent="😱";pill.className="pill xs al";await sleep(700)}
+    else{
+      pill.className="pill xs cr";
+      for(var k=1;k<=3;k++){tx.textContent="...".slice(0,k);tx.style.display="block";tx.style.opacity=1;await sleep(650)}
+      tx.style.display="none";tx.style.opacity=0;
+    }
+    ic.textContent="👻";open(L[g][kind]);
+    await sleep(6500);await close();
+    pill.className="pill xs";win.classList.remove("bad");busy=false;
+  }
+  d.getElementById("bE").onclick=function(){speak("e")};
+  d.getElementById("bI").onclick=function(){speak("i")};
+  d.querySelectorAll("[data-g]").forEach(function(b){b.onclick=function(){
+    g=b.dataset.g;d.querySelectorAll("[data-g]").forEach(function(o){o.setAttribute("aria-pressed",o===b)});speak("e");
+  }});
+  var go=false;
+  new IntersectionObserver(function(en){if(en[0].isIntersecting&&!go){go=true;setTimeout(function(){speak("e")},900)}},{threshold:.6}).observe(win);
+})();
+</script>
+</body>
+</html>
